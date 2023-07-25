@@ -1,4 +1,4 @@
-use asr::{async_main, Address, game_engine::unity::{mono::Module, SceneManager, get_scene_name}, Error, future::{retry, next_tick}, PointerSize, Process, settings::Gui, string::{ArrayString}, timer, timer::TimerState, watcher::Watcher};
+use asr::{async_main, Address, game_engine::unity::{mono::Module, SceneManager, get_scene_name}, Error, future::{retry, next_tick}, PointerSize, Process, settings::Gui, string::{ArrayString}, time::Duration, timer, timer::TimerState, watcher::Watcher};
 use bytemuck::CheckedBitPattern;
 use derive;
 
@@ -35,6 +35,11 @@ struct GameSettings {
     /// This excludes selected hidden realms and game end conditions
     #[default = false]
     fin: bool,
+    /// Detect fast resets
+    /// This starts the timer paused, then unpauses when the original start condition is met, which
+    /// adds 0.56s to Real Time that needs to be manually subtracted by the runner (Game Time is unaffected)
+    #[default = true]
+    fast: bool,
 }
 
 /// game state watchers
@@ -50,6 +55,7 @@ struct GameVars {
 #[derive(Default)]
 struct AutoSplitterState {
     was_loading: bool,
+    delaying_start: bool,
 }
 
 /// MonoClass companion
@@ -69,8 +75,9 @@ impl StaticField<'_> {
 fn update_loop(game_state: &GameVars, game_settings: &GameSettings, autosplitter_state: &mut AutoSplitterState, autosplitter_settings: &AutoSplitterSettings) {
     match timer::state() {
         TimerState::NotRunning => {
-            if should_start(&game_state) && autosplitter_settings.start {
+            if should_start(&game_state, game_settings) && autosplitter_settings.start {
                 timer::start();
+                autosplitter_state.delaying_start = game_settings.fast;
             }
         },
 
@@ -81,7 +88,11 @@ fn update_loop(game_state: &GameVars, game_settings: &GameSettings, autosplitter
             if should_split(&game_state, game_settings) && autosplitter_settings.split {
                 timer::split();
             }
-            if is_loading(&game_state, autosplitter_state.was_loading) {
+            if autosplitter_state.delaying_start {
+                timer::set_game_time(Duration::ZERO);
+                autosplitter_state.delaying_start = delay_start(&game_state);
+            }
+            if is_loading(&game_state, autosplitter_state.was_loading) || autosplitter_state.delaying_start {
                 if !autosplitter_state.was_loading {
                     timer::pause_game_time();
                     autosplitter_state.was_loading = true;
@@ -101,7 +112,7 @@ fn update_loop(game_state: &GameVars, game_settings: &GameSettings, autosplitter
 }
 
 /// Start on regular Stage 1s during fade-in
-fn should_start(game_state: &GameVars) -> bool {
+fn should_start(game_state: &GameVars, settings: &GameSettings) -> bool {
     if let (Some(scene), Some(fade)) = (game_state.scene.pair, game_state.fade.pair) {
         if scene.current.starts_with("golemplains") ||
            scene.current.starts_with("blackbeach") ||
@@ -109,8 +120,17 @@ fn should_start(game_state: &GameVars) -> bool {
            scene.current.starts_with("lakes") ||
            scene.current.starts_with("village")
         {
-            return fade.current < 1.0 && fade.old >= 1.0;
+            return (settings.fast && scene.old.as_str() == "lobby") ||
+                   (fade.current < 1.0 && fade.old >= 1.0);
         }
+    }
+    return false;
+}
+
+/// Pause until fade-in matches regular start conditions
+fn delay_start(game_state: &GameVars) -> bool {
+    if let Some(fade) = game_state.fade.pair {
+        return !(fade.current < 1.0 && fade.old >= 1.0);
     }
     return false;
 }

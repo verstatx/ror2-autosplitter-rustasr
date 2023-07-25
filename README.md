@@ -6,6 +6,19 @@ Rewritten in rust to use the ASR crate with mono runtime support.
 
 Works with LSO and regular LiveSplit via the autosplitting runtime component.
 
+The `fast-reset-detection` branch detects resets more quickly than the regular
+branch. Runners can know when to reset before the first stage fully loads,
+which is before the original timer starts, and that causes the reset to be
+skipped. This branch works around the problem by starting the timer a little
+earlier (identical to previous versions' start timing with the -0.56s offset),
+and compensates by pausing at 0:00 until the start condition matches the
+original timer's start condition. The downside to this method is that the
+"Real Time" of the timer will include the paused time at the start.
+
+Runners will need to manually subtract 0.56s from their "Real time" when
+submitting runs using this branch. "Game Time" needs no adjustments.
+
+
 ## Building
 
 Make sure you have the wasm32 target installed:
