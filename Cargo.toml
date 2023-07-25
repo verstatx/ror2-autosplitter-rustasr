@@ -1,0 +1,13 @@
+[package]
+name = "ror2-autosplitter-rustasr"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+asr = { git = "https://github.com/Jujstme/asr.git", version = "0.1.0", features = ["mono", "derive"] }
+bytemuck = { version = "1.13.1", features = ["derive", "min_const_generics"] }
