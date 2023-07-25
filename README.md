@@ -4,6 +4,19 @@ A WIP Risk of Rain 2 Autosplitter/Load Remover using the livesplit-core
 auto-splitting-v2 API. Adapted from the RiskOfRain2.asl. Rewrite in rust to use
 the WIP ASR crate with mono runtime support.
 
+The `fast-reset-detection` branch detects resets more quickly than the regular
+branch. Runners can know when to reset before the first stage fully loads,
+which is before the original timer starts, and that causes the reset to be
+skipped. This branch works around the problem by starting the timer a little
+earlier (identical to previous versions' start timing with the -0.56s offset),
+and compensates by pausing at 0:00 until the start condition matches the
+original timer's start condition. The downside to this method is that the
+"Real Time" of the timer will include the paused time at the start.
+
+Runners will need to manually subtract 0.56s from their "Real time" when
+submitting runs using this branch. "Game Time" needs no adjustments.
+
+
 ## Building
 
 Make sure you have the wasm32 target installed:

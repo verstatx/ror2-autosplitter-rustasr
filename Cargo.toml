@@ -1,5 +1,5 @@
 [package]
-name = "ror2-autosplitter-rustasr"
+name = "ror2-autosplitter-rustasr-fast"
 version = "0.1.0"
 edition = "2021"
 
