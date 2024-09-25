@@ -9,5 +9,5 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-asr = { git = "https://github.com/Jujstme/asr.git", version = "0.1.0", features = ["mono", "derive"] }
+asr = { git = "https://github.com/LiveSplit/asr.git", version = "0.1.0", features = ["derive", "unity"] }
 bytemuck = { version = "1.13.1", features = ["derive", "min_const_generics"] }
