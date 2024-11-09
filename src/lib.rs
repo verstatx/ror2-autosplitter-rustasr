@@ -254,7 +254,8 @@ async fn main() {
                     if let Some(goc) = goc.as_ref() {
                         if panel_loc.is_none() {
                             let instance_field = goc.get_field_offset(&process, &monomod, "<instance>k__BackingField");
-                            let sdgerp_field = goc.get_field_offset(&process, &monomod, "<shouldDisplayGameEndReportPanels>k__BackingField");
+                            let sdgerp_field = goc.get_field_offset(&process, &monomod, "<shouldDisplayGameEndReportPanels>k__BackingField")
+                                .or_else(|| goc.get_field_offset(&process, &monomod, "_shouldDisplayGameEndReportPanels")); // versions after SotS (starting with manifest 4567638355138669926 on 2024-08-27)
                             let static_table = goc.get_static_table(&process, &monomod);
                             if let (Some(instance_field), Some(static_table), Some(sdgerp_field)) = (instance_field, static_table, sdgerp_field) {
                                 let instance_addr = static_table.add(instance_field.into());
