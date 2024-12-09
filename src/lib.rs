@@ -132,14 +132,18 @@ fn should_split(game_state: &GameVars, settings: &GameSettings) -> bool {
     // stage count increased
     if let Some(stage_count) = game_state.stage_count.pair {
         if !settings.fin && stage_count.current >= 1 && stage_count.increased() {
-            return true;
+            // avoid double splits on Commencement
+            return match game_state.scene.pair {
+                Some(scene) => !scene.current.starts_with("moon"),
+                _ => true
+            }
         }
     }
     if let Some(scene) = game_state.scene.pair {
         // reached a special scene
         if scene.changed() {
             match scene.old.as_str() {
-                "outro" => return true,
+                "moon" | "moon2" => return true,
                 "bazaar" => return settings.bazaar,
                 "arena" => return settings.arena,
                 "goldshores" => return settings.goldshores,
