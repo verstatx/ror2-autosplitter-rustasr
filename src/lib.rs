@@ -105,7 +105,9 @@ fn should_start(game_state: &GameVars) -> bool {
     if let (Some(scene), Some(fade)) = (game_state.scene.pair, game_state.fade.pair) {
         if scene.current.starts_with("golemplains") ||
            scene.current.starts_with("blackbeach") ||
-           scene.current.starts_with("snowyforest")
+           scene.current.starts_with("snowyforest") ||
+           scene.current.starts_with("lakes") ||
+           scene.current.starts_with("village")
         {
             return fade.current < 1.0 && fade.old >= 1.0;
         }
